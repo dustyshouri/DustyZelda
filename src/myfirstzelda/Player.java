@@ -14,7 +14,7 @@ public class Player {
   private int[] blocking;
   private int[] keys = {Input.KEY_UP,Input.KEY_LEFT,Input.KEY_DOWN,Input.KEY_RIGHT};
   private int[][] vectors = {{0,-1,0,1},{-1,0,1,0}};
-  private boolean[] keyspressed = new boolean[10];
+  private boolean[] keyspressed = new boolean[4];
 
   float x,y,speed,slidespeed;
   TiledMap map;
@@ -44,20 +44,13 @@ public class Player {
   }
   
   public void move(float dt) {
-    if (input.isKeyDown(Input.KEY_S)) {
-      if (keyspressed[5] == false) {
-        interactTiles("sword",dir);
-        keyspressed[5] = true;
-      }
-    } else keyspressed[5] = false;
+    if (input.isKeyPressed(Input.KEY_S)) {
+      interactTiles("sword",dir);
+    }
     
-    if (input.isKeyDown(Input.KEY_A)) {
-      if (keyspressed[6] == false) {
-        interactTiles("lift",dir);
-        keyspressed[6] = true;
-      }
-    } else keyspressed[6] = false;
-    
+    if (input.isKeyPressed(Input.KEY_A)) {
+      interactTiles("lift",dir);
+    }
     
     for (int i = 0;i<4;i++) {
       keyspressed[i] = false;
