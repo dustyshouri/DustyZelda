@@ -15,7 +15,7 @@ public class Main extends BasicGame {
   public Color clr;
   // END BLOCK STUFF
   
-  public Player plyr = new Player(26,35);
+  public Player plyr = new Player(23,34);
   public Camera cam  = new Camera(plyr.x,plyr.y);
   public HUD hud     = new HUD();
   
@@ -80,10 +80,11 @@ public class Main extends BasicGame {
     map.render(renderx,rendery,(int)cam.x-1,(int)cam.y-1,screenwidth,screenheight);
     //map.render(Math.round((tileW*-1)-renderx%tileW),Math.round((tileH*-1)-rendery%tileH),(int)cam.x-1,(int)cam.y-1,screenwidth,screenheight,map.getLayerIndex("Objects"),false);
     
-    plyr.render(cam.x,cam.y);
+    plyr.render(cam.x,cam.y,false);
     map.render(renderx,rendery,(int)cam.x-1,(int)cam.y-1,screenwidth,screenheight,map.getLayerIndex("Drawover"),false);
+    plyr.render(cam.x,cam.y,true);
     
-    g.drawRect(Math.round((mx - cam.x)*tileW),Math.round((my - cam.y)*tileH),tileW,tileH);
+    if (hud.debughud) g.drawRect(Math.round((mx - cam.x)*tileW),Math.round((my - cam.y)*tileH),tileW,tileH);
     
     g.popTransform();
     
@@ -97,10 +98,10 @@ public class Main extends BasicGame {
       app.setShowFPS(false);
       app.setAlwaysRender(true);
 
-      //app.setSmoothDeltas(true);
+      app.setSmoothDeltas(true);
       app.setDisplayMode(256*2,224*2,false);
-      //app.setTargetFrameRate(60);
-      //app.setVSync(true);
+      //app.setTargetFrameRate(20);
+      app.setVSync(true);
  
       app.start(); 
       

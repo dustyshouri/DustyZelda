@@ -1,6 +1,8 @@
 package myfirstzelda;
 
 import java.util.Arrays;
+
+import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.tiled.TiledMap;
@@ -39,7 +41,7 @@ public class Player {
     this.x = nx;
     this.y = ny;
     this.speed = 10/1000f;
-    this.slidespeed = 5/1000f;
+    this.slidespeed = 4/1000f;
   }
   
   public void move(float dt) {
@@ -99,6 +101,8 @@ public class Player {
   }
   
   void hitWall(int k,boolean[] w,float dt) {
+    if (k == 0) interactTiles("open",0);
+    
     slidedir = -1;
     
     if (k == 1 || k == 3) x = (int)(x + .5);
@@ -106,24 +110,44 @@ public class Player {
     
     if (w[0] == true && w[1] == false) slidedir = k == 0 ? 3 : (k-1)%4;
     else if (w[0] == false && w[1] == true) slidedir = (k+1)%4;
+    if (slidedir > -1) if (k == 1 || k == 2) slidedir = (slidedir+2)%4;
     
     if (slidedir == -1 || this.keyspressed[slidedir] || (this.keyspressed[(k+1)%4] || this.keyspressed[k == 0 ? 3 : (k-1)%4])) return;
-
-    if (k == 1 || k == 2) slidedir = (slidedir+2)%4;
+    
     boolean[] checkslide = onWallDir(slidedir,slidespeed*dt);
+
     if (checkslide[0] == true || checkslide[1] == true) {
       if (slidedir == 0 || slidedir == 2) y = (int)(y + .5);
       else x = (int)(x + .5);
       return;
     }
-    x += vectors[0][slidedir]*(slidespeed*dt);
-    y += vectors[1][slidedir]*(slidespeed*dt);
-    //x = (x/(slidespeed*dt))*(slidespeed*dt);
-    //y = (y/(slidespeed*dt))*(slidespeed*dt);
+    if (slidedir == 0 || slidedir == 2) {
+      if (slidedir == 2 && y + .1 > (int)(y+1)) {
+        y = (int)(y+1);
+        slidedir = -1;
+        return;
+      } else if (slidedir == 0 && y - .1 < (int)y) {
+        y = (int)y;
+        slidedir = -1;
+        return;
+      } else y += vectors[1][slidedir]*(slidespeed*dt);
+    }
+    if (slidedir == 1 || slidedir == 3) {
+      if (slidedir == 3 && x + .1 > (int)(x+1)) {
+        x = (int)(x+1);
+        slidedir = -1;
+        return;
+      } else if (slidedir == 1 && x - .1 < (int)x) {
+        x = (int)x;
+        slidedir = -1;
+        return;
+      } else x += vectors[0][slidedir]*(slidespeed*dt);
+    }
   }
   
   void interactTiles(String action,int d) {
     int[][][] tiles = {
+      {{518,519,582,583},{94,94,158,158}      ,{9,9}}, // DOOR
       {{3,4,67,68}      ,{662,663,726,727}    ,{0,0}}, // BUSH
       {{17,18,81,82}    ,{1083,1084,1147,1148},{2,0}}, // SIGN
       {{131,132,195,196},{1211,1212,1275,1276},{2,0}}  // STONE
@@ -149,6 +173,7 @@ public class Player {
     if (!Arrays.equals(checktiles,tiles[object][0])) return;
     if (action == "sword" && tiles[object][2][0] > 0) return;
     if (action == "lift" && tiles[object][2][1] > 0) return;
+    if (action == "open" && object > 0) return;
     
     for (int i=0;i<4;i++) {
       map.setTileId((int)(px+(i%2)),(int)(py+(int)(i/2)),0,tiles[object][1][i]);
@@ -160,10 +185,16 @@ public class Player {
     return map.getTileId((int)cx,(int)cy,0);
   }
 
-  public void render(float cx,float cy) {
-    image.draw(Math.round((x - cx)*map.getTileWidth()),Math.round((y - cy)*map.getTileHeight())-8,
-               Math.round((x - cx)*map.getTileWidth())+16,Math.round((y - cy)*map.getTileHeight())-8+24,
-               this.dir*16,0,this.dir*16+16,24);
+  public void render(float cx,float cy,boolean alpha) {
+    if (alpha == false) {
+      image.draw(Math.round((x - cx)*map.getTileWidth()),Math.round((y - cy)*map.getTileHeight())-8,
+                 Math.round((x - cx)*map.getTileWidth())+16,Math.round((y - cy)*map.getTileHeight())-8+24,
+                 this.dir*16,0,this.dir*16+16,24);
+    } else {
+      image.draw(Math.round((x - cx)*map.getTileWidth()),Math.round((y - cy)*map.getTileHeight())-8,
+          Math.round((x - cx)*map.getTileWidth())+16,Math.round((y - cy)*map.getTileHeight())-8+24,
+          this.dir*16,0,this.dir*16+16,24,new Color(1,1,1,.25f));
+    }
     //image.draw(Math.round((x - cx)*map.getTileWidth()),Math.round((y - cy)*map.getTileHeight())-8);
     //    image.draw(x*16 - cx*16,(y - cy)*16);
   }
