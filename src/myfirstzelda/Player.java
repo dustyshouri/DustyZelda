@@ -1,7 +1,6 @@
 package myfirstzelda;
 
 import java.util.Arrays;
-
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.tiled.TiledMap;
@@ -55,14 +54,16 @@ public class Player {
     for (int i = 0;i<4;i++) {
       keyspressed[i] = false;
       if (input.isKeyDown(keys[i])) {
+        this.dir = i;
         keyspressed[i] = true;
         
-        if (!onWall(x+vectors[0][i]*this.speed*dt,y+vectors[1][i]*this.speed*dt,2,2)) {
+        if (!onWall(x+(vectors[0][i]*0.0625f)+vectors[0][i]*this.speed*dt,y+(vectors[1][i]*0.0625f)+vectors[1][i]*this.speed*dt,2,2)) {
           slidedir = -1;
           this.x += vectors[0][i]*this.speed*dt;
           this.y += vectors[1][i]*this.speed*dt;
+          //this.x += vectors[0][i]*this.speed*dt;
+          //this.y += vectors[1][i]*this.speed*dt;
         } else hitWall(i,onWallDir(i,speed*dt),dt);
-        this.dir = i;
       }
     }
 
@@ -98,12 +99,11 @@ public class Player {
   }
   
   void hitWall(int k,boolean[] w,float dt) {
-    float slidespeed = 4/1000f;
-
+    slidedir = -1;
+    
     if (k == 1 || k == 3) x = (int)(x + .5);
     else y = (int)(y + .5);
     
-    slidedir = -1;
     if (w[0] == true && w[1] == false) slidedir = k == 0 ? 3 : (k-1)%4;
     else if (w[0] == false && w[1] == true) slidedir = (k+1)%4;
     
@@ -118,8 +118,8 @@ public class Player {
     }
     x += vectors[0][slidedir]*(slidespeed*dt);
     y += vectors[1][slidedir]*(slidespeed*dt);
-    x = (x/(slidespeed*dt))*(slidespeed*dt);
-    y = (y/(slidespeed*dt))*(slidespeed*dt);
+    //x = (x/(slidespeed*dt))*(slidespeed*dt);
+    //y = (y/(slidespeed*dt))*(slidespeed*dt);
   }
   
   void interactTiles(String action,int d) {

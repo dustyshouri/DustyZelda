@@ -15,7 +15,7 @@ public class Main extends BasicGame {
   public Color clr;
   // END BLOCK STUFF
   
-  public Player plyr = new Player(23,35);
+  public Player plyr = new Player(26,35);
   public Camera cam  = new Camera(plyr.x,plyr.y);
   public HUD hud     = new HUD();
   
@@ -97,8 +97,9 @@ public class Main extends BasicGame {
       app.setShowFPS(false);
       app.setAlwaysRender(true);
 
-      app.setDisplayMode(256,224,false);
-      app.setTargetFrameRate(60);
+      //app.setSmoothDeltas(true);
+      app.setDisplayMode(256*2,224*2,false);
+      //app.setTargetFrameRate(60);
       //app.setVSync(true);
  
       app.start(); 

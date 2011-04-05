@@ -43,7 +43,7 @@ public class HUD {
   public void render(Graphics g,float scale,TiledMap map,float mx,float my) {
     if (!debughud) {
       g.pushTransform();
-      g.scale(1,1);
+      g.scale(2,2);
       
       for (int i=0;i<drawhud.length;i++) {
         hudimg.draw(drawhud[i][0],drawhud[i][1],drawhud[i][0]+drawhud[i][4],drawhud[i][1]+drawhud[i][5],
