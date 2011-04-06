@@ -15,7 +15,7 @@ public class Main extends BasicGame {
   public Color clr;
   // END BLOCK STUFF
   
-  public Player plyr = new Player(23,34);
+  public Player plyr = new Player(17,1);
   public Camera cam  = new Camera(plyr.x,plyr.y);
   public HUD hud     = new HUD();
   
@@ -30,12 +30,12 @@ public class Main extends BasicGame {
   
   @Override
   public void init(GameContainer container) throws SlickException {
-    img = new Image("res/zelda_debug-link.png",false,0x2);
+    img = new Image("res/zelda_linksprites.png",false,0x2);
     debug = new Image("res/zelda_blockmap.png");
     input = container.getInput();
     Player.setImage(img);
     Player.setInput(container.getInput());
-    map = new TiledMap("res/zelda_debug.tmx","res");
+    map = new TiledMap("res/zelda_kakoriko.tmx","res");
     tileW = map.getTileWidth();
     tileH = map.getTileHeight();
     cam.getLevelData(map.getWidth(),map.getHeight());
@@ -67,8 +67,8 @@ public class Main extends BasicGame {
   @Override
   public void render(GameContainer container, Graphics g) throws SlickException {
     g.setBackground(new Color(74,156,74));
-    g.pushTransform();
     
+    g.pushTransform();
     g.scale(scale,scale);
     int screenwidth = (int)(container.getWidth()/scale/tileW) + 3;
     int screenheight = (int)(container.getHeight()/scale/tileH) + 3;
@@ -79,13 +79,11 @@ public class Main extends BasicGame {
 
     map.render(renderx,rendery,(int)cam.x-1,(int)cam.y-1,screenwidth,screenheight);
     //map.render(Math.round((tileW*-1)-renderx%tileW),Math.round((tileH*-1)-rendery%tileH),(int)cam.x-1,(int)cam.y-1,screenwidth,screenheight,map.getLayerIndex("Objects"),false);
-    
     plyr.render(cam.x,cam.y,false);
     map.render(renderx,rendery,(int)cam.x-1,(int)cam.y-1,screenwidth,screenheight,map.getLayerIndex("Drawover"),false);
     plyr.render(cam.x,cam.y,true);
     
     if (hud.debughud) g.drawRect(Math.round((mx - cam.x)*tileW),Math.round((my - cam.y)*tileH),tileW,tileH);
-    
     g.popTransform();
     
     hud.render(g,scale,map,mx,my);

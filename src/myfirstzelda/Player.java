@@ -1,7 +1,6 @@
 package myfirstzelda;
 
 import java.util.Arrays;
-
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
@@ -17,7 +16,8 @@ public class Player {
   private int[][] vectors = {{0,-1,0,1},{-1,0,1,0}};
   private boolean[] keyspressed = new boolean[4];
 
-  float x,y,speed,slidespeed;
+  float x,y,speed,slidespeed,aniframe;
+  float anispeed = 12/1000f;
   TiledMap map;
   int lvlw,lvlh,dir;
   
@@ -40,7 +40,7 @@ public class Player {
     this.dir = 2;
     this.x = nx;
     this.y = ny;
-    this.speed = 10/1000f;
+    this.speed = 8/1000f;
     this.slidespeed = 4/1000f;
   }
   
@@ -53,12 +53,16 @@ public class Player {
       interactTiles("lift",dir);
     }
     
+    if (input.isKeyDown(keys[0]) || input.isKeyDown(keys[1]) || input.isKeyDown(keys[2]) || input.isKeyDown(keys[3])) {
+      aniframe += anispeed*dt;
+      aniframe = aniframe%8;
+    } else aniframe = 0;
+    
     for (int i = 0;i<4;i++) {
       keyspressed[i] = false;
       if (input.isKeyDown(keys[i])) {
         this.dir = i;
         keyspressed[i] = true;
-        
         if (!onWall(x+(vectors[0][i]*0.0625f)+vectors[0][i]*this.speed*dt,y+(vectors[1][i]*0.0625f)+vectors[1][i]*this.speed*dt,2,2)) {
           slidedir = -1;
           this.x += vectors[0][i]*this.speed*dt;
@@ -184,16 +188,27 @@ public class Player {
   int checkTile(float cx, float cy) {
     return map.getTileId((int)cx,(int)cy,0);
   }
-
+  
   public void render(float cx,float cy,boolean alpha) {
+    int w = 24;
+    int h = 24;
     if (alpha == false) {
-      image.draw(Math.round((x - cx)*map.getTileWidth()),Math.round((y - cy)*map.getTileHeight())-8,
-                 Math.round((x - cx)*map.getTileWidth())+16,Math.round((y - cy)*map.getTileHeight())-8+24,
-                 this.dir*16,0,this.dir*16+16,24);
+      image.draw(Math.round((x - cx)*map.getTileWidth())-4  ,Math.round((y - cy)*map.getTileHeight())-8,
+                 Math.round((x - cx)*map.getTileWidth())-4+w,Math.round((y - cy)*map.getTileHeight())-8+h,
+                 this.dir*w,0,this.dir*w+w,h);
+      image.draw(Math.round((x - cx)*map.getTileWidth())-4  ,Math.round((y - cy)*map.getTileHeight())-8,
+          Math.round((x - cx)*map.getTileWidth())-4+w,Math.round((y - cy)*map.getTileHeight())-8+h,
+          this.dir*w,h+(int)aniframe*h,this.dir*w+w,h+h+(int)aniframe*h);
     } else {
+      /*
+      if (map.getTileId((int)(x),(int)(y+.5),map.getLayerIndex("Drawover")) == 0 ||
+          map.getTileId((int)(x+1),(int)(y+.5),map.getLayerIndex("Drawover")) == 0 ||
+          map.getTileId((int)(x+1),(int)(y+1.5),map.getLayerIndex("Drawover")) == 0 ||
+          map.getTileId((int)(x),(int)(y+1.5),map.getLayerIndex("Drawover")) == 0) return;
       image.draw(Math.round((x - cx)*map.getTileWidth()),Math.round((y - cy)*map.getTileHeight())-8,
           Math.round((x - cx)*map.getTileWidth())+16,Math.round((y - cy)*map.getTileHeight())-8+24,
-          this.dir*16,0,this.dir*16+16,24,new Color(1,1,1,.25f));
+          this.dir*16,0,this.dir*16+16,24,new Color(0,0,0,.5f));
+          */
     }
     //image.draw(Math.round((x - cx)*map.getTileWidth()),Math.round((y - cy)*map.getTileHeight())-8);
     //    image.draw(x*16 - cx*16,(y - cy)*16);
