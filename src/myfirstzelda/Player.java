@@ -1,25 +1,45 @@
 package myfirstzelda;
 
 import java.util.Arrays;
-import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.tiled.TiledMap;
 
 public class Player {
+  private enum Mode {
+    IDLE(0,1,0),WALK(0,8,24/1000f),SWORD(9,9,24/1000f);
+    
+    private final int sprite,lastsprite;
+    private final float anispeed;
+    Mode(int sprite,int lastsprite,float anispeed) {
+      this.sprite = sprite;
+      this.lastsprite = lastsprite;
+      this.anispeed = anispeed;
+    }
+    int getSprite() {
+      return sprite;
+    }
+    int getLastSprite() {
+      return lastsprite;
+    }
+    float getAniSpeed() {
+      return anispeed;
+    }
+  }
+  
   static Input input;
   static Image image;
-  
+
   private int slidedir = -1;
   private int[] blocking;
   private int[] keys = {Input.KEY_UP,Input.KEY_LEFT,Input.KEY_DOWN,Input.KEY_RIGHT};
   private int[][] vectors = {{0,-1,0,1},{-1,0,1,0}};
   private boolean[] keyspressed = new boolean[4];
 
-  float x,y,speed,slidespeed,aniframe;
-  float anispeed = 12/1000f;
+  float x,y,speed,slidespeed,aniframe,frozen;
   TiledMap map;
-  int lvlw,lvlh,dir;
+  int lvlw,lvlh,dir,sprite;
+  Mode mode;
   
   public static void setInput(Input input) {
     Player.input = input;
@@ -40,23 +60,47 @@ public class Player {
     this.dir = 2;
     this.x = nx;
     this.y = ny;
-    this.speed = 8/1000f;
+    this.speed = 10/1000f;
     this.slidespeed = 4/1000f;
+    mode = Mode.IDLE;
   }
   
-  public void move(float dt) {
+  public void work(float dt) {
+    //System.out.println(modes.SWORD.getSprite());
+    
     if (input.isKeyPressed(Input.KEY_S)) {
       interactTiles("sword",dir);
+      Main.playSound("LTTP_Sword1.wav");
+      mode = Mode.SWORD;
+      aniframe = mode.getSprite();
+      frozen = 20/1000f;
     }
     
     if (input.isKeyPressed(Input.KEY_A)) {
       interactTiles("lift",dir);
     }
     
-    if (input.isKeyDown(keys[0]) || input.isKeyDown(keys[1]) || input.isKeyDown(keys[2]) || input.isKeyDown(keys[3])) {
-      aniframe += anispeed*dt;
-      aniframe = aniframe%8;
-    } else aniframe = 0;
+    if (frozen == -1) move(dt);
+    
+    aniframe += mode.getAniSpeed()*dt;
+    if (aniframe > mode.getSprite() + mode.getLastSprite()) aniframe = mode.getSprite();
+    if (aniframe < mode.getSprite()) aniframe = mode.getSprite();
+    sprite = mode.getSprite() + (int)aniframe;
+    
+    //System.out.println((int)aniframe);
+    if (frozen > 0) frozen -= 1/1000f;
+    else frozen = -1;
+    
+    if (this.x < 0) this.x = 0;
+    if (this.y < 0) this.y = 0;
+    if (this.x > lvlw - 2) this.x = lvlw - 2;
+    if (this.y > lvlh - 2) this.y = lvlh - 2;
+  }
+  
+  void move (float dt) {
+    if (input.isKeyDown(keys[0]) || input.isKeyDown(keys[1]) ||
+        input.isKeyDown(keys[2]) || input.isKeyDown(keys[3])) mode = Mode.WALK;
+    else mode = Mode.IDLE;
     
     for (int i = 0;i<4;i++) {
       keyspressed[i] = false;
@@ -72,11 +116,6 @@ public class Player {
         } else hitWall(i,onWallDir(i,speed*dt),dt);
       }
     }
-
-    if (this.x < 0) this.x = 0;
-    if (this.y < 0) this.y = 0;
-    if (this.x > lvlw - 2) this.x = lvlw - 2;
-    if (this.y > lvlh - 2) this.y = lvlh - 2;
   }
   
   boolean onWall(float cx,float cy,float cw,float ch) {
@@ -179,6 +218,10 @@ public class Player {
     if (action == "lift" && tiles[object][2][1] > 0) return;
     if (action == "open" && object > 0) return;
     
+    if (action == "lift") Main.playSound("LTTP_Link_Pickup.wav");
+    if (action == "sword" && object == 1) Main.playSound("LTTP_Grass_Cut.wav");
+    if (action == "open" && object == 0) Main.playSound("LTTP_Door.wav");
+    
     for (int i=0;i<4;i++) {
       map.setTileId((int)(px+(i%2)),(int)(py+(int)(i/2)),0,tiles[object][1][i]);
     }
@@ -199,6 +242,9 @@ public class Player {
       image.draw(Math.round((x - cx)*map.getTileWidth())-4  ,Math.round((y - cy)*map.getTileHeight())-8,
           Math.round((x - cx)*map.getTileWidth())-4+w,Math.round((y - cy)*map.getTileHeight())-8+h,
           this.dir*w,h+(int)aniframe*h,this.dir*w+w,h+h+(int)aniframe*h);
+      //image.draw(Math.round((x - cx)*map.getTileWidth())-4  ,Math.round((y - cy)*map.getTileHeight())-8,
+      //    Math.round((x - cx)*map.getTileWidth())-4+w,Math.round((y - cy)*map.getTileHeight())-8+h,
+      //    this.dir*w,h+(int)aniframe*h,this.dir*w+w,h+h+(int)aniframe*h);
     } else {
       /*
       if (map.getTileId((int)(x),(int)(y+.5),map.getLayerIndex("Drawover")) == 0 ||

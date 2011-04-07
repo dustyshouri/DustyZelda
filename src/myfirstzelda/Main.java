@@ -1,5 +1,10 @@
 package myfirstzelda;
 
+import java.io.File;
+import java.io.IOException;
+
+import javax.sound.midi.*;
+
 import org.lwjgl.input.Mouse;
 import org.newdawn.slick.*;
 import org.newdawn.slick.tiled.TiledMap;
@@ -39,10 +44,10 @@ public class Main extends BasicGame {
     tileW = map.getTileWidth();
     tileH = map.getTileHeight();
     cam.getLevelData(map.getWidth(),map.getHeight());
-    
     hud.loadObj(container,plyr,cam,new Image("res/zelda_hud.png",false,0x2));
-    
     loadBlockMap();
+    
+    playSong("kakiriko.mid");
   } 
 
   @Override
@@ -57,7 +62,7 @@ public class Main extends BasicGame {
     if (scale < 1) scale = 1;
     if (scale > 8) scale = 8;
     
-    plyr.move(delta);
+    plyr.work(delta);
     cam.follow(plyr.x,plyr.y,container.getWidth()/scale/tileW,container.getHeight()/scale/tileH);
     
     mx = (int)((Mouse.getX()/tileW/scale) + cam.x);
@@ -105,6 +110,36 @@ public class Main extends BasicGame {
       
     } catch (SlickException e) {
       e.printStackTrace(); 
+    }
+  }
+  
+  public static void playSong(String s) {
+    Sequence sequence;
+    try {
+      sequence = MidiSystem.getSequence(new File("src/res/music/" + s));
+      Sequencer sequencer = MidiSystem.getSequencer();
+      sequencer.open();
+      sequencer.setSequence(sequence);
+      sequencer.start();
+    } catch (InvalidMidiDataException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch (MidiUnavailableException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+  }
+  
+  public static void playSound(String s) {
+    try {
+      Sound sfx = new Sound("res/sounds/" + s);
+      sfx.play();
+    } catch (SlickException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
     }
   }
   
