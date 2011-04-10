@@ -1,16 +1,17 @@
 package myfirstzelda;
 
-import java.io.File;
 import java.io.IOException;
-
+import java.text.DecimalFormat;
 import javax.sound.midi.*;
-
 import org.lwjgl.input.Mouse;
 import org.newdawn.slick.*;
 import org.newdawn.slick.tiled.TiledMap;
 
 public class Main extends BasicGame {
+  private UnicodeFont unicodeFont;
+  
   public Input input;
+ 
   public Image img,debug,hudimg;
   public int bx,by;
   public float mx,my;
@@ -20,22 +21,25 @@ public class Main extends BasicGame {
   public Color clr;
   // END BLOCK STUFF
   
-  public Player plyr = new Player(17,1);
-  public Camera cam  = new Camera(plyr.x,plyr.y);
-  public HUD hud     = new HUD();
+  public TiledMap map;
+  public Player plyr;
+  public Camera cam;
+  public HUD hud;
   
-  float scale = 2;
+  float scale,scaledelta = 2;
   int tileW,tileH;
   
   public Main() {
     super("Link to the Past"); 
   }
   
-  public TiledMap map;
-  
   @Override
   public void init(GameContainer container) throws SlickException {
-    img = new Image("res/zelda_linksprites.png",false,0x2);
+    plyr = new Player(17,1);
+    cam  = new Camera(plyr.x,plyr.y);
+    hud  = new HUD();
+    
+    //img = new Image("res/zelda_linksprites.png",false,0x2);
     debug = new Image("res/zelda_blockmap.png");
     input = container.getInput();
     Player.setImage(img);
@@ -52,17 +56,22 @@ public class Main extends BasicGame {
 
   @Override
   public void update(GameContainer container, int delta) throws SlickException {
+    hud.unicodeFont.loadGlyphs(1);
     hud.listenInput(input);
     if (input.isKeyDown(Input.KEY_ESCAPE)) container.exit();
     
-    if (input.isKeyDown(Input.KEY_MINUS)) scale -= .1;
-    else if (input.isKeyDown(Input.KEY_EQUALS)) scale += .1;
-    else if (input.isKeyDown(Input.KEY_0)) scale = 2;
+    if (input.isKeyDown(Input.KEY_MINUS)) scaledelta -= (4/1000f)*delta;
+    else if (input.isKeyDown(Input.KEY_EQUALS)) scaledelta += (4/1000f)*delta;
+    else if (input.isKeyDown(Input.KEY_0)) scaledelta = 2;
     
-    if (scale < 1) scale = 1;
-    if (scale > 8) scale = 8;
+    if (scaledelta < 1) scaledelta = 1;
+    if (scaledelta > 8) scaledelta = 8;
     
-    plyr.work(delta);
+    DecimalFormat df = new DecimalFormat("0.0");
+    
+    scale =  Float.valueOf(df.format(scaledelta)).floatValue();
+    
+    plyr.tick(delta);
     cam.follow(plyr.x,plyr.y,container.getWidth()/scale/tileW,container.getHeight()/scale/tileH);
     
     mx = (int)((Mouse.getX()/tileW/scale) + cam.x);
@@ -72,7 +81,7 @@ public class Main extends BasicGame {
   @Override
   public void render(GameContainer container, Graphics g) throws SlickException {
     g.setBackground(new Color(74,156,74));
-    
+  
     g.pushTransform();
     g.scale(scale,scale);
     int screenwidth = (int)(container.getWidth()/scale/tileW) + 3;
@@ -88,11 +97,13 @@ public class Main extends BasicGame {
     map.render(renderx,rendery,(int)cam.x-1,(int)cam.y-1,screenwidth,screenheight,map.getLayerIndex("Drawover"),false);
     plyr.render(cam.x,cam.y,true);
     
+    g.setFont(unicodeFont);
     if (hud.debughud) g.drawRect(Math.round((mx - cam.x)*tileW),Math.round((my - cam.y)*tileH),tileW,tileH);
     g.popTransform();
-    
+ 
     hud.render(g,scale,map,mx,my);
-  
+    
+    //unicodeFont.drawString(10, 33, "Testing Testing.");
   }
 
   public static void main(String[] args) {
@@ -101,10 +112,10 @@ public class Main extends BasicGame {
       app.setShowFPS(false);
       app.setAlwaysRender(true);
 
-      app.setSmoothDeltas(true);
+      //app.setSmoothDeltas(true);
       app.setDisplayMode(256*2,224*2,false);
       //app.setTargetFrameRate(20);
-      app.setVSync(true);
+      //app.setVSync(true);
  
       app.start(); 
       
@@ -113,22 +124,22 @@ public class Main extends BasicGame {
     }
   }
   
-  public static void playSong(String s) {
+  public void playSong(String s) {
     Sequence sequence;
     try {
-      sequence = MidiSystem.getSequence(new File("src/res/music/" + s));
+      //InputStream is = new BufferedInputStream(getClass().getClassLoader().getResourceAsStream("res/music/" + s));
+      sequence = MidiSystem.getSequence(getClass().getClassLoader().getResourceAsStream("res/music/" + s));
+      //sequence = MidiSystem.getSequence(new File("/res/music/" + s));
       Sequencer sequencer = MidiSystem.getSequencer();
       sequencer.open();
+      sequencer.setLoopCount(Sequencer.LOOP_CONTINUOUSLY);
       sequencer.setSequence(sequence);
       sequencer.start();
     } catch (InvalidMidiDataException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     } catch (IOException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     } catch (MidiUnavailableException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     }
   }

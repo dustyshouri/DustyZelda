@@ -3,24 +3,25 @@ package myfirstzelda;
 import java.util.Arrays;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
+import org.newdawn.slick.SlickException;
 import org.newdawn.slick.tiled.TiledMap;
 
 public class Player {
   private enum Mode {
-    IDLE(0,1,0),WALK(0,8,24/1000f),SWORD(9,9,24/1000f);
+    IDLE(0,1,0),WALK(1,8,20/1000f),SWORD(9,10,24/1000f);
     
-    private final int sprite,lastsprite;
+    private final int startframe,framecount;
     private final float anispeed;
-    Mode(int sprite,int lastsprite,float anispeed) {
-      this.sprite = sprite;
-      this.lastsprite = lastsprite;
+    Mode(int startframe,int framecount,float anispeed) {
+      this.startframe = startframe;
+      this.framecount = framecount;
       this.anispeed = anispeed;
     }
-    int getSprite() {
-      return sprite;
+    int getStartFrame() {
+      return startframe;
     }
-    int getLastSprite() {
-      return lastsprite;
+    int getFrameCount() {
+      return framecount;
     }
     float getAniSpeed() {
       return anispeed;
@@ -53,10 +54,16 @@ public class Player {
   }
   
   public static void setImage(Image img) {
-    Player.image = img;
+    //Player.image = img;
   }
 
   public Player(int nx,int ny) {
+    try {
+      image = new Image("res/zelda_linksprites.png",false,0x2);
+    } catch (SlickException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
     this.dir = 2;
     this.x = nx;
     this.y = ny;
@@ -65,31 +72,35 @@ public class Player {
     mode = Mode.IDLE;
   }
   
-  public void work(float dt) {
+  public void tick(float dt) {
     //System.out.println(modes.SWORD.getSprite());
-    
     if (input.isKeyPressed(Input.KEY_S)) {
       interactTiles("sword",dir);
       Main.playSound("LTTP_Sword1.wav");
       mode = Mode.SWORD;
-      aniframe = mode.getSprite();
-      frozen = 20/1000f;
+      aniframe = mode.getStartFrame();
+      //frozen = 0.437f;
+      frozen = ((mode.getFrameCount()-1)/(mode.getAniSpeed()*dt))*(dt/1000);
+      //System.out.println(frozen);
     }
     
     if (input.isKeyPressed(Input.KEY_A)) {
       interactTiles("lift",dir);
     }
     
-    if (frozen == -1) move(dt);
+    if (frozen > 0 && mode != Mode.SWORD) move(dt);
     
     aniframe += mode.getAniSpeed()*dt;
-    if (aniframe > mode.getSprite() + mode.getLastSprite()) aniframe = mode.getSprite();
-    if (aniframe < mode.getSprite()) aniframe = mode.getSprite();
-    sprite = mode.getSprite() + (int)aniframe;
+    if (aniframe < mode.getStartFrame()) aniframe = mode.getStartFrame();
+    if (aniframe > mode.getStartFrame() + mode.getFrameCount() - 1) {
+      if (mode == Mode.SWORD) mode = Mode.IDLE;
+      aniframe = mode.getStartFrame();
+    }
+    sprite = (int)aniframe + 1;
     
-    //System.out.println((int)aniframe);
-    if (frozen > 0) frozen -= 1/1000f;
-    else frozen = -1;
+    //if (aniframe != 0) System.out.println(aniframe + " : " + mode.getStartFrame() + " : " + sprite);
+    if (frozen > 0) frozen -= dt/1000;
+    else frozen = 0;
     
     if (this.x < 0) this.x = 0;
     if (this.y < 0) this.y = 0;
@@ -236,12 +247,12 @@ public class Player {
     int w = 24;
     int h = 24;
     if (alpha == false) {
-      image.draw(Math.round((x - cx)*map.getTileWidth())-4  ,Math.round((y - cy)*map.getTileHeight())-8,
-                 Math.round((x - cx)*map.getTileWidth())-4+w,Math.round((y - cy)*map.getTileHeight())-8+h,
+      image.draw((x - cx)*map.getTileWidth()-4  ,(y - cy)*map.getTileHeight()-8,
+                 (x - cx)*map.getTileWidth()-4+w,(y - cy)*map.getTileHeight()-8+h,
                  this.dir*w,0,this.dir*w+w,h);
-      image.draw(Math.round((x - cx)*map.getTileWidth())-4  ,Math.round((y - cy)*map.getTileHeight())-8,
-          Math.round((x - cx)*map.getTileWidth())-4+w,Math.round((y - cy)*map.getTileHeight())-8+h,
-          this.dir*w,h+(int)aniframe*h,this.dir*w+w,h+h+(int)aniframe*h);
+      image.draw((x - cx)*map.getTileWidth()-4,(y - cy)*map.getTileHeight()-8,
+          (x - cx)*map.getTileWidth()-4+w,(y - cy)*map.getTileHeight()-8+h,
+          this.dir*w,sprite*h,this.dir*w+w,sprite*h+h);
       //image.draw(Math.round((x - cx)*map.getTileWidth())-4  ,Math.round((y - cy)*map.getTileHeight())-8,
       //    Math.round((x - cx)*map.getTileWidth())-4+w,Math.round((y - cy)*map.getTileHeight())-8+h,
       //    this.dir*w,h+(int)aniframe*h,this.dir*w+w,h+h+(int)aniframe*h);

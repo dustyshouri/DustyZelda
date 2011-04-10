@@ -3,6 +3,9 @@ package myfirstzelda;
 import java.text.DecimalFormat;
 import org.newdawn.slick.*;
 import org.newdawn.slick.tiled.TiledMap;
+import org.newdawn.slick.UnicodeFont;
+import org.newdawn.slick.font.effects.ColorEffect;
+import org.newdawn.slick.font.effects.ShadowEffect;
 
 import myfirstzelda.Player;
 import myfirstzelda.Camera;
@@ -12,6 +15,7 @@ public class HUD {
   Player plyr;
   Camera cam;
   Image hudimg;
+  public UnicodeFont unicodeFont;
   
   int[][] drawhud = {
     {20 ,19,0 ,0 ,16,42}, // MAGIC CONTAINER
@@ -25,7 +29,17 @@ public class HUD {
   boolean debughud = false;
   StringBuffer debugtext = new StringBuffer();
   
-  public HUD() {}
+  @SuppressWarnings("unchecked")
+  public HUD() {
+    try {
+      unicodeFont = new UnicodeFont("res/lucon.ttf", 14, true, false);
+      unicodeFont.getEffects().add(new ShadowEffect(java.awt.Color.black,1,1,1f));
+      unicodeFont.getEffects().add(new ColorEffect(java.awt.Color.white));
+    } catch (SlickException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+  }
   
   public void listenInput(Input input) {
     if (input.isKeyPressed(Input.KEY_F1)) {
@@ -51,8 +65,6 @@ public class HUD {
       }
       g.popTransform();
     } else {
-      g.pushTransform();
-      g.scale(.85f,.85f);
       debugtext.setLength(0);
       DecimalFormat df = new DecimalFormat("00.00");
       debugtext.append("Window size : " + container.getWidth() + "x" + container.getHeight() + " @ " + container.getFPS() + "fps & " +
@@ -60,16 +72,21 @@ public class HUD {
               "Position    : " + df.format(plyr.x) + " : " + df.format(plyr.y) + " @ " + plyr.speed*1000 + "t/s\n" +
               "Camera      : " + df.format(cam.x) + " : " + df.format(cam.y) + "\n");
    
-      g.drawString(debugtext.toString(),16,16);
-      g.drawString("A/S to lift/slash",container.getWidth()-84,container.getHeight()+18);
-      g.drawString("Press -/+ to zoom in",container.getWidth()-110,container.getHeight()+36);
-      g.drawString(" and out. 0 to reset",container.getWidth()-110,container.getHeight()+54);
-
-      g.popTransform();
+      unicodeFont.drawString(16,16,debugtext.toString());
+      
+      debugtext.setLength(0);
+      debugtext.append("A/S to lift/slash\n");
+      debugtext.append("Press -/+ to zoom in\n");
+      debugtext.append("and out. 0 to reset\n");
+      
+      unicodeFont.drawString(container.getWidth()-unicodeFont.getWidth(debugtext.toString()) - 16,
+                             container.getHeight()-unicodeFont.getHeight(debugtext.toString()) - 16,
+                             debugtext.toString());
       
       try {
-        g.drawString("Mouse: " + map.getTileId((int)mx,(int)my,0) + " @ " + mx + " : " + my ,
-                     16,container.getHeight() - 24);
+        debugtext.setLength(0);
+        debugtext.append("Mouse: " + map.getTileId((int)mx,(int)my,0) + " @ " + mx + " : " + my);
+        unicodeFont.drawString(16,container.getHeight() - unicodeFont.getHeight(debugtext.toString()) - 16,debugtext.toString());
       } catch (ArrayIndexOutOfBoundsException e) {} 
     }
   }
